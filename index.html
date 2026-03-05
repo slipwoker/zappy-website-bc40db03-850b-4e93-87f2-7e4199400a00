@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <title>Discover the Best Game Sites for Endless Fun — zappy</title>
+    <meta name="description" content="Experience the ultimate gaming destination with thousands of free games at your fingertips. Join zappy today and unlock instant access to the best game sites online.">
+    <meta name="keywords" content="best game sites, free game sites, gaming sites, online gaming, play free games">
+    
+    <!-- Zappy Analytics -->
+<script>
+(function() {
+  'use strict';
+  
+  // Configuration
+  var config = {
+    websiteId: 'bc40db03-850b-4e93-87f2-7e4199400a00',
+    apiUrl: 'https://api.zappy5.com/api/analytics/track',
+    sessionDuration: 30 * 60 * 1000, // 30 minutes
+    visitorDuration: 30 * 24 * 60 * 60 * 1000, // 30 days
+    trackPageViews: true,
+    trackClicks: true,
+    trackFormSubmissions: true
+  };
+  
+  // Generate or retrieve persistent visitor ID (30 days)
+  function getVisitorId() {
+    var visitorKey = 'zappy_visitor_' + config.websiteId;
+    var visitor = null;
+    
+    try {
+      visitor = localStorage.getItem(visitorKey);
+      if (visitor) {
+        var visitorData = JSON.parse(visitor);
+        var now = Date.now();
+        
+        // Check if visitor ID is still valid (30 days)
+        if (now - visitorData.created < config.visitorDuration) {
+          // Update last seen timestamp
+          visitorData.lastSeen = now;
+          localStorage.setItem(visitorKey, JSON.stringify(visitorData));
+          return visitorData.id;
+        }
+      }
+    } catch (e) {
+      console.warn('Zappy Analytics: LocalStorage not available');
+    }
+    
+    // Generate new visitor ID
+    var newVisitorId = 'zv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    try {
+      localStorage.setItem(visitorKey, JSON.stringify({
+        id: newVisitorId,
+        created: Date.now(),
+        lastSeen: Date.now()
+      }));
+    } catch (e) {
+      // Continue without local storage
+    }
+    
+    return newVisitorId;
+  }
+  
+  // Generate or retrieve session ID (30 minutes)
+  function getSessionId() {
+    var sessionKey = 'zappy_session_' + config.websiteId;
+    var session = null;
+    
+    try {
+      session = sessionStorage.getItem(sessionKey);
+      if (session) {
+        var sessionData = JSON.parse(session);
+        var now = Date.now();
+        
+        // Check if session is still valid
+        if (now - sessionData.timestamp < config.sessionDuration) {
+          // Update timestamp
+          sessionData.timestamp = now;
+          sessionStorage.setItem(sessionKey, JSON.stringify(sessionData));
+          return sessionData.id;
+        }
+      }
+    } catch (e) {
+      console.warn('Zappy Analytics: SessionStorage not available');
+    }
+    
+    // Generate new session ID
+    var newSessionId = 'zs_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    try {
+      sessionStorage.setItem(sessionKey, JSON.stringify({
+        id: newSessionId,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      // Continue without session storage
+    }
+    
+    return newSessionId;
+  }
+  
+  var visitorId = getVisitorId();
+  var sessionId = getSessionId();
+  
+  // Track an event
+  function trackEvent(eventType, data) {
+    data = data || {};
+    
+    var eventData = {
+      website_id: config.websiteId,
+      event_type: eventType,
+      page_path: window.location.pathname,
+      referrer: document.referrer || 'direct',
+      visitor_id: visitorId,
+      session_id: sessionId,
+      metadata: data
+    };
+    
+    // Use sendBeacon if available (better for page unload events)
+    if (navigator.sendBeacon) {
+      var blob = new Blob([JSON.stringify(eventData)], { type: 'application/json' });
+      navigator.sendBeacon(config.apiUrl, blob);
+    } else {
+      // Fallback to fetch
+      fetch(config.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventData),
+        keepalive: true
+      }).catch(function(error) {
+        console.warn('Zappy Analytics: Failed to track event', error);
+      });
+    }
+  }
+  
+  // Track page view
+  if (config.trackPageViews) {
+    trackEvent('pageview', {
+      title: document.title,
+      url: window.location.href
+    });
+  }
+  
+  // Track clicks on important elements
+  if (config.trackClicks) {
+    document.addEventListener('click', function(e) {
+      var target = e.target;
+      
+      // Track button clicks (counted as actions)
+      if (target.tagName === 'BUTTON' || target.closest('button')) {
+        var button = target.tagName === 'BUTTON' ? target : target.closest('button');
+        trackEvent('click', {
+          element: 'button',
+          text: button.textContent.trim().substring(0, 100),
+          id: button.id || null,
+          class: button.className || null
+        });
+      }
+      
+      // Track link clicks (navigation - not counted as actions)
+      else if (target.tagName === 'A' || target.closest('a')) {
+        var link = target.tagName === 'A' ? target : target.closest('a');
+        trackEvent('navigation', {
+          element: 'link',
+          text: link.textContent.trim().substring(0, 100),
+          href: link.href,
+          external: link.hostname !== window.location.hostname
+        });
+      }
+    }, true);
+  }
+  
+  // Track form submissions
+  if (config.trackFormSubmissions) {
+    document.addEventListener('submit', function(e) {
+      var form = e.target;
+      
+      trackEvent('form_submit', {
+        form_id: form.id || null,
+        form_name: form.name || null,
+        form_action: form.action || null,
+        form_method: form.method || 'GET'
+      });
+    }, true);
+  }
+  
+  // Track time on page (send on page unload)
+  var pageLoadTime = Date.now();
+  
+  window.addEventListener('beforeunload', function() {
+    var timeOnPage = Math.floor((Date.now() - pageLoadTime) / 1000); // in seconds
+    
+    trackEvent('page_unload', {
+      time_on_page: timeOnPage,
+      page_path: window.location.pathname
+    });
+  });
+  
+  // Expose tracking function globally for custom events
+  window.zappyAnalytics = {
+    track: trackEvent,
+    getVisitorId: function() { return visitorId; },
+    getSessionId: function() { return sessionId; }
+  };
+  
+})();
+</script>
+<!-- End Zappy Analytics -->
+    <meta property="og:title" content="Discover the Best Game Sites for Endless Fun — zappy">
+  <meta property="og:description" content="Experience the ultimate gaming destination with thousands of free games at your fingertips. Join zappy today and unlock instant access to the best game sites online.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Discover the Best Game Sites for Endless Fun — zappy">
+  <meta name="twitter:description" content="Experience the ultimate gaming destination with thousands of free games at your fingertips. Join zappy today and unlock instant access to the best game sites online.">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon-512x512.png">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <!-- Cookie Consent -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3/dist/cookieconsent.css">
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3/dist/cookieconsent.umd.js"></script>
+    <!-- Mickidum Accessibility Toolbar -->
+    <script src="https://cdn.jsdelivr.net/gh/mickidum/acc_toolbar/acctoolbar/acctoolbar.min.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+
+    <style id="zappy-dropdown-submenu-styles">
+      /* ========== DESKTOP DROPDOWN SUBMENU STYLES ========== */
+      /* Base styles for dropdown submenus - parent must be positioned */
+      .nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu) { position: relative; }
+      /* Submenu base - hidden by default */
+      .nav-menu .sub-menu, nav .sub-menu, .navbar .sub-menu, #navMenu .sub-menu { display: block !important; position: absolute !important; top: 100%; left: 0; min-width: 220px; background: white; border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); padding: 8px 0; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.3s ease; z-index: 1000; list-style: none; pointer-events: none; }
+      /* CRITICAL: Desktop hover styles to show dropdown */
+      .nav-menu li:hover > .sub-menu, nav li:hover > .sub-menu, .navbar li:hover > .sub-menu, #navMenu li:hover > .sub-menu { opacity: 1 !important; visibility: visible !important; transform: translateY(0) !important; pointer-events: auto !important; }
+      /* Submenu item styling */
+      .sub-menu li { list-style: none; margin: 0; padding: 0; }
+      .sub-menu a { display: block !important; padding: 10px 16px !important; color: #333 !important; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background-color 0.2s; }
+      .sub-menu a:hover { background-color: #f5f5f5; }
+      /* RTL (Hebrew/Arabic) dropdown positioning */
+      [dir="rtl"] .nav-menu .sub-menu, [dir="rtl"] nav .sub-menu, [dir="rtl"] .navbar .sub-menu, html[lang="he"] .nav-menu .sub-menu, html[lang="he"] nav .sub-menu, html[lang="he"] .navbar .sub-menu, html[lang="ar"] .nav-menu .sub-menu, html[lang="ar"] nav .sub-menu, html[lang="ar"] .navbar .sub-menu { left: auto !important; right: 0 !important; }
+      /* Hide empty dropdown menus */
+      .sub-menu:empty, .sub-menu:not(:has(li:not(.zappy-hidden-menu-item))), .sub-menu:not(:has(li)) { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+      /* Desktop: show submenu on Menu Group hover */
+      li:has(.menu-group-title):hover > .sub-menu { opacity: 1 !important; visibility: visible !important; transform: translateY(0) !important; pointer-events: auto !important; }
+      /* Menu Group title styling */
+      .nav-menu > li > .menu-group-title, #navMenu > li > .menu-group-title { display: inline-block; padding: 0.5rem 1rem; cursor: default; user-select: none; }
+      
+      /* ========== MOBILE SUBMENU STYLES ========== */
+      @media (max-width: 768px) {
+        .nav-menu .sub-menu, nav .sub-menu, .navbar .sub-menu, #navMenu .sub-menu { position: static !important; transform: none !important; box-shadow: none !important; background: transparent !important; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; padding: 0 !important; border-radius: 0 !important; }
+        .sub-menu.mobile-expanded { max-height: 500px !important; opacity: 1 !important; visibility: visible !important; padding: 8px 0 8px 16px !important; }
+        [dir="rtl"] .sub-menu.mobile-expanded, html[lang="he"] .sub-menu.mobile-expanded { padding: 8px 16px 8px 0 !important; }
+        /* Disable hover behavior on mobile */
+        .nav-menu li:hover > .sub-menu, nav li:hover > .sub-menu, .navbar li:hover > .sub-menu, #navMenu li:hover > .sub-menu { opacity: 0; visibility: hidden; pointer-events: none; }
+        .nav-menu li > .sub-menu.mobile-expanded, nav li > .sub-menu.mobile-expanded, .navbar li > .sub-menu.mobile-expanded, #navMenu li > .sub-menu.mobile-expanded { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+        .nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu) { display: flex !important; flex-wrap: wrap !important; align-items: center !important; position: relative !important; min-height: 44px !important; }
+        .nav-menu li:has(.sub-menu) > a, nav li:has(.sub-menu) > a, .navbar li:has(.sub-menu) > a, #navMenu li:has(.sub-menu) > a { flex: 1 !important; min-width: 0 !important; }
+        .nav-menu li:has(.sub-menu) > .menu-group-title, nav li:has(.sub-menu) > .menu-group-title, .navbar li:has(.sub-menu) > .menu-group-title, #navMenu li:has(.sub-menu) > .menu-group-title { flex: 1 !important; min-width: 0 !important; padding: 0 !important; line-height: inherit !important; }
+        .nav-menu li:has(.sub-menu) > .sub-menu, nav li:has(.sub-menu) > .sub-menu, .navbar li:has(.sub-menu) > .sub-menu, #navMenu li:has(.sub-menu) > .sub-menu { flex-basis: 100% !important; width: 100% !important; }
+        .nav-menu li:has(.sub-menu) > a [class*="chevron"], .nav-menu li:has(.sub-menu) > a [class*="arrow"], .nav-menu li:has(.sub-menu) > a .fa-chevron-down, .nav-menu li:has(.sub-menu) > a .fa-angle-down, nav li:has(.sub-menu) > a [class*="chevron"], nav li:has(.sub-menu) > a [class*="arrow"], #navMenu li:has(.sub-menu) > a [class*="chevron"], #navMenu li:has(.sub-menu) > a [class*="arrow"] { display: none !important; visibility: hidden !important; }
+        .mobile-submenu-toggle { display: flex !important; align-items: center !important; justify-content: center !important; width: 44px !important; height: auto !important; background: transparent !important; border: none !important; cursor: pointer !important; color: var(--text-dark) !important; position: static !important; flex-shrink: 0 !important; align-self: stretch !important; z-index: 2 !important; padding: 0 !important; margin: 0 !important; }
+        .mobile-submenu-toggle::after { content: '' !important; width: 0 !important; height: 0 !important; border-left: 6px solid transparent !important; border-right: 6px solid transparent !important; border-top: 7px solid currentColor !important; transition: transform 0.3s ease !important; }
+        .mobile-submenu-toggle.expanded::after { transform: rotate(180deg) !important; }
+        .sub-menu a { padding: 10px 0 !important; display: block !important; color: var(--text-dark) !important; }
+        .navbar .sub-menu li a, nav.navbar .sub-menu li a, .zappy-products-dropdown .sub-menu a { color: var(--text-dark) !important; }
+      }
+      @media (min-width: 769px) { .mobile-submenu-toggle { display: none !important; } }
+    </style>
+
+    <style id="zappy-widget-visibility">
+      #mic-access-tool-general-button, .mic-access-tool-general-button,
+      #mic-init-access-tool .mic-access-tool-general-button, #mic-init-access-tool #mic-access-tool-general-button,
+      ._access-icon, #mic-access-tool-box, .mic-access-tool-box,
+      #mic-init-access-tool #mic-access-tool-box, div[id*="mic-access-tool-box"], ._access-menu {
+        display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;
+      }
+    </style>
+</head>
+<body>
+
+
+    <div class="mobile-search-panel" id="mobile-search-panel">
+      <div class="search-wrapper">
+        <input type="text" id="mobile-search-input" placeholder="Search products..." autocomplete="off">
+        <button class="search-submit" id="mobile-search-submit" title="Search">
+          <svg width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+        </button>
+        <button class="close-search" id="close-mobile-search">
+          <svg width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="search-results" id="mobile-search-results"></div>
+    </div>
+  
+<script>window.ZAPPY_WEBSITE_ID = "bc40db03-850b-4e93-87f2-7e4199400a00";window.ZAPPY_API_BASE = (window.location.pathname.includes('/preview') ? "https://api.zappy5.com" : "https://api.zappy5.com");</script>
+  <nav class="navbar">
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <svg class="hamburger-icon" width="24" height="24" viewbox="0 0 24 24" fill="none">
+      <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+    </svg>
+    <svg class="close-icon" width="24" height="24" viewbox="0 0 24 24" fill="none" style="display:none;">
+      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+    </svg>
+  </button>
+  
+  <button class="phone-header-btn" aria-label="Call">
+    <svg width="20" height="20" viewbox="0 0 24 24" fill="currentColor">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+    </svg>
+  </button>
+  
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a href="/" class="logo-link">
+        <img src="/assets/business-logo.webp" alt="zappy" class="logo">
+      </a>
+    </div>
+    
+    <ul class="nav-menu" id="navMenu">
+
+    <li class="menu-item-has-children zappy-products-dropdown">
+      <a href="/products">
+        Products
+        <svg class="dropdown-arrow" width="12" height="12" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9l6 6 6-6"></path>
+        </svg>
+      </a>
+      <ul class="sub-menu" id="zappy-nav-category-links">
+        <li><a href="/products">All Products</a></li>
+        <!-- Categories will be loaded dynamically -->
+      </ul>
+    </li>
+  <li><a href="/games">Games</a></li><li><a href="/about">About</a></li><li><a href="/contact">Contact</a></li></ul><div class="nav-ecommerce-icons nav-icons-left"><div class="nav-search-box">
+    <input type="text" class="nav-search-input" id="nav-search-input" placeholder="Search products..." autocomplete="off">
+    <button class="nav-search-btn" id="nav-search-btn" title="Search">
+      <svg class="search-icon" width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+    </button>
+    <div class="nav-search-results" id="nav-search-results"></div>
+  </div></div><div class="nav-ecommerce-icons nav-icons-right"><button class="nav-search-toggle" id="mobile-search-toggle" title="Search"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg></button></div>
+    
+    
+  </div>
+</nav>
+
+    <nav class="zappy-catalog-menu ltr" id="zappy-catalog-menu" dir="ltr">
+      <div class="catalog-menu-container">
+        <a href="/products" class="catalog-menu-item catalog-menu-all">All Products</a>
+        <div class="catalog-menu-categories" id="zappy-category-links">
+          <!-- Categories will be loaded dynamically -->
+        </div>
+      </div>
+    </nav>
+  
+  
+  <main>
+    <section class="home-hero-section" data-layout-spec="Home-hero" data-hero-type="fullscreen-scrim"><div class="home-hero-section__bg-wrapper"><img data-hero-bg="true" data-placeholder="home-hero-bg" data-context="High-production esports arena or modern gaming setup with dramatic lighting, slightly defocused for depth, bright and energetic atmosphere with blue and orange accent lights, professional gaming equipment visible in soft blur, cinematic gaming environment" data-preserve-bg="0" width="1920" height="1080" src="/assets/site-home-hero-bg.webp" alt="Modern esports gaming arena" class="home-hero-section__bg-image"><div class="home-hero-section__scrim" aria-hidden="true"></div></div><div class="home-hero-section__content-wrapper"><div class="home-hero-section__overlay-card"><h1 class="home-hero-section__headline">Play what's trending. Read what matters.</h1><h3 class="home-hero-section__subtitle">Your curated gaming destination for new releases, competitive picks, expert guides, and the highlights that define the scene.</h3><div class="home-hero-section__cta-row"><a href="/games" class="home-hero-section__btn home-hero-section__btn--primary">Explore Games</a><a href="/contact" class="home-hero-section__btn home-hero-section__btn--secondary">Contact the Team</a></div></div></div><div class="home-hero-section__divider-wrapper"><svg data-no-icon-edit="true" aria-hidden="true" viewbox="0 0 1200 120" preserveaspectratio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,120 L0,0 L1200,80 L1200,120 Z" fill="var(--bg-light)"></path></svg></div></section>
+
+    <section class="featured-products-section" id="featured-products" data-zappy-dynamic="true">
+      <div class="container">
+        <h2 class="section-title">Featured Products</h2>
+        <div class="product-grid featured-grid" id="zappy-featured-products">
+          <div class="loading-products">Loading products...</div>
+        </div>
+        <div class="view-all-products">
+          <a href="/products" class="btn btn-primary">View All Products →</a>
+        </div>
+      </div>
+    </section>
+  
+
+    <section class="featured-categories-section" id="featured-categories" data-zappy-dynamic="true">
+      <div class="container">
+        <h2 class="section-title">Shop by Category</h2>
+        <div class="category-blocks" id="zappy-featured-categories">
+          <div class="loading-categories">Loading products...</div>
+        </div>
+      </div>
+    </section>
+  
+
+<section class="home-showcase-section" data-layout-spec="Home-Showcase">
+  <div class="home-showcase-container">
+    <h2 class="home-showcase-title">Featured This Week</h2>
+    
+    <div class="home-showcase-grid">
+      <!-- Featured Card (Left - 7 columns) -->
+      <article class="home-showcase-featured-card">
+        <div class="home-showcase-featured-image-wrapper">
+          <img data-placeholder="home-showcase-featured" data-context="High-quality gaming screenshot showing an action-packed scene from a popular multiplayer game, vibrant colors, dramatic lighting, professional gaming magazine cover quality" width="800" height="450" src="/assets/site-home-showcase-featured.webp" alt="Featured game of the week">
+        </div>
+        <div class="home-showcase-featured-content">
+          <h3 class="home-showcase-featured-title">Stellar Conquest: Battle Royale Edition</h3>
+          <p class="home-showcase-featured-description">Experience the ultimate competitive gaming thrill with enhanced graphics and new battle arenas. Team up with friends across platforms for intense 100-player matches featuring dynamic weather systems and destructible environments that change every game.</p>
+          <div class="home-showcase-featured-meta">
+            <span class="home-showcase-meta-badge">PC</span>
+            <span class="home-showcase-meta-badge">Console</span>
+            <span class="home-showcase-meta-badge">Action</span>
+            <span class="home-showcase-meta-badge home-showcase-meta-badge-accent">Multiplayer</span>
+          </div>
+        </div>
+      </article>
+      
+      <!-- Supporting List (Right - 5 columns) -->
+      <div class="home-showcase-list">
+        <article class="home-showcase-list-item">
+          <div class="home-showcase-list-image-wrapper">
+            <img data-placeholder="home-showcase-list-1" data-context="Gaming screenshot of a puzzle adventure game with colorful, whimsical art style, bright and inviting atmosphere" width="120" height="120" src="/assets/site-home-showcase-list-1.webp" alt="New puzzle adventure game">
+          </div>
+          <div class="home-showcase-list-content">
+            <div class="home-showcase-list-header">
+              <h3 class="home-showcase-list-title">Mystic Puzzle Quest</h3>
+              <span class="home-showcase-list-tag home-showcase-list-tag-new">New</span>
+            </div>
+            <p class="home-showcase-list-summary">Solve enchanting puzzles in a magical world filled with surprises</p>
+            <div class="home-showcase-list-meta">
+              <span class="home-showcase-list-score">9.1</span>
+              <span class="home-showcase-list-genre">Puzzle</span>
+            </div>
+          </div>
+        </article>
+        
+        <article class="home-showcase-list-item">
+          <div class="home-showcase-list-image-wrapper">
+            <img data-placeholder="home-showcase-list-2" data-context="Screenshot of a racing game showing sleek sports cars on a futuristic neon-lit city track at night" width="120" height="120" src="/assets/site-home-showcase-list-2.webp" alt="Updated racing game">
+          </div>
+          <div class="home-showcase-list-content">
+            <div class="home-showcase-list-header">
+              <h3 class="home-showcase-list-title">Velocity Racer Pro</h3>
+              <span class="home-showcase-list-tag home-showcase-list-tag-updated">Updated</span>
+            </div>
+            <p class="home-showcase-list-summary">New tracks and vehicles added in the latest high-speed update</p>
+            <div class="home-showcase-list-meta">
+              <span class="home-showcase-list-score">8.8</span>
+              <span class="home-showcase-list-genre">Racing</span>
+            </div>
+          </div>
+        </article>
+        
+        <article class="home-showcase-list-item">
+          <div class="home-showcase-list-image-wrapper">
+            <img data-placeholder="home-showcase-list-3" data-context="Fantasy RPG game screenshot showing epic battle scene with knights and magical effects, dramatic medieval setting" width="120" height="120" src="/assets/site-home-showcase-list-3.webp" alt="Spotlight RPG game">
+          </div>
+          <div class="home-showcase-list-content">
+            <div class="home-showcase-list-header">
+              <h3 class="home-showcase-list-title">Kingdom Legends</h3>
+              <span class="home-showcase-list-tag home-showcase-list-tag-spotlight">Spotlight</span>
+            </div>
+            <p class="home-showcase-list-summary">Embark on an epic quest through a vast fantasy realm</p>
+            <div class="home-showcase-list-meta">
+              <span class="home-showcase-list-score">9.4</span>
+              <span class="home-showcase-list-genre">RPG</span>
+            </div>
+          </div>
+        </article>
+        
+        <article class="home-showcase-list-item">
+          <div class="home-showcase-list-image-wrapper">
+            <img data-placeholder="home-showcase-list-4" data-context="Strategy game screenshot showing tactical battlefield view with units and terrain, clean interface design" width="120" height="120" src="/assets/site-home-showcase-list-4.webp" alt="New strategy game">
+          </div>
+          <div class="home-showcase-list-content">
+            <div class="home-showcase-list-header">
+              <h3 class="home-showcase-list-title">Tactical Command</h3>
+              <span class="home-showcase-list-tag home-showcase-list-tag-new">New</span>
+            </div>
+            <p class="home-showcase-list-summary">Master strategic warfare in this deep tactical experience</p>
+            <div class="home-showcase-list-meta">
+              <span class="home-showcase-list-score">8.9</span>
+              <span class="home-showcase-list-genre">Strategy</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bottom Divider -->
+  <div class="home-showcase-divider-wrapper">
+    <svg data-no-icon-edit="true" aria-hidden="true" viewbox="0 0 1200 60" preserveaspectratio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="home-showcase-speckle">
+          <feTurbulence type="fractalNoise" basefrequency="0.9" numoctaves="4" result="noise"></feTurbulence>
+          <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise"></feColorMatrix>
+          <feComponentTransfer in="desaturatedNoise" result="theNoise">
+            <feFuncA type="discrete" tablevalues="0 0 0 0 0 0 0 0 0.02 0"></feFuncA>
+          </feComponentTransfer>
+          <feGaussianBlur in="theNoise" stddeviation="0.5" result="blurredNoise"></feGaussianBlur>
+          <feBlend in="SourceGraphic" in2="blurredNoise" mode="multiply"></feBlend>
+        </filter>
+      </defs>
+      <path d="M0,60 L0,28 Q30,32 60,26 T120,30 Q150,25 180,32 T240,28 Q270,33 300,27 T360,31 Q390,26 420,33 T480,29 Q510,34 540,28 T600,32 Q630,27 660,34 T720,30 Q750,35 780,29 T840,33 Q870,28 900,35 T960,31 Q990,36 1020,30 T1080,34 Q1110,29 1140,36 T1200,32 L1200,60 Z" fill="var(--bg-light)" filter="url(#home-showcase-speckle)"></path>
+    </svg>
+  </div>
+</section>
+
+<section class="home-stats-section" data-layout-spec="Home-Stats">
+  <div class="stats-container">
+    <div class="stats-intro">
+      <h2>Built for the long session</h2>
+      <p>zappy is curated for quick scanning and deep reading—whether you're catching up on weekly highlights or diving into detailed guides, everything is designed to save you time and keep you informed.</p>
+    </div>
+    
+    <hr class="stats-divider" aria-hidden="true">
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">48</div>
+        <h3>Weekly highlights</h3>
+        <p>Fresh picks and updates delivered every week to keep you in the loop.</p>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-number">120+</div>
+        <h3>Curated picks</h3>
+        <p>Hand-selected games and content to match your interests and play style.</p>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-number">300+</div>
+        <h3>Community notes</h3>
+        <p>Insights and tips shared by gamers who know what works best.</p>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-number">10k+</div>
+        <h3>Guide minutes saved</h3>
+        <p>Streamlined walkthroughs that get you to the good stuff faster.</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stats-divider-wrapper">
+    <svg data-no-icon-edit="true" aria-hidden="true" viewbox="0 0 1200 120" preserveaspectratio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="statsGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#FAFAF7;stop-opacity:1"></stop>
+          <stop offset="100%" style="stop-color:#F5F3F0;stop-opacity:1"></stop>
+        </linearGradient>
+      </defs>
+      <path d="M0,120 L0,0 L1200,0 L1200,120 Z" fill="var(--bg-light)"></path>
+    </svg>
+  </div>
+</section>
+
+<section class="home-reviews-section" data-layout-spec="Home-reviews">
+  <div class="home-reviews-container">
+    <h2 class="home-reviews-title">What players and editors say</h2>
+    <div class="home-reviews-grid">
+      <article class="home-reviews-card">
+        <div class="home-reviews-rating">9.2/10</div>
+        <h3 class="home-reviews-quote-title">"Finally, a site that respects my time"</h3>
+        <p class="home-reviews-quote-text">No endless scrolling through lists. Just clean filters and instant results. This is how game discovery should work.</p>
+        <div class="home-reviews-attribution">Competitive Player</div>
+      </article>
+      
+      <article class="home-reviews-card">
+        <div class="home-reviews-rating">9.5/10</div>
+        <h3 class="home-reviews-quote-title">"Best curation I've seen"</h3>
+        <p class="home-reviews-quote-text">Every recommendation feels handpicked. No filler, no spam—just quality titles that match what I'm looking for.</p>
+        <div class="home-reviews-attribution">Guide Writer</div>
+      </article>
+      
+      <article class="home-reviews-card">
+        <div class="home-reviews-rating">9.0/10</div>
+        <h3 class="home-reviews-quote-title">"Lightning fast discovery"</h3>
+        <p class="home-reviews-quote-text">I can find exactly what I want in seconds. The search is intuitive and the layout makes browsing effortless.</p>
+        <div class="home-reviews-attribution">Streamer</div>
+      </article>
+      
+      <article class="home-reviews-card">
+        <div class="home-reviews-rating">9.3/10</div>
+        <h3 class="home-reviews-quote-title">"Clean, modern, no clutter"</h3>
+        <p class="home-reviews-quote-text">This site feels like it was designed by someone who actually plays games. Everything is where it should be.</p>
+        <div class="home-reviews-attribution">Community Mod</div>
+      </article>
+      
+      <article class="home-reviews-card">
+        <div class="home-reviews-rating">9.4/10</div>
+        <h3 class="home-reviews-quote-title">"Perfect for long browsing sessions"</h3>
+        <p class="home-reviews-quote-text">The light design doesn't strain my eyes, and the typography is so readable. I can explore for hours without fatigue.</p>
+        <div class="home-reviews-attribution">Content Creator</div>
+      </article>
+      
+      <article class="home-reviews-card">
+        <div class="home-reviews-rating">9.1/10</div>
+        <h3 class="home-reviews-quote-title">"Editorial quality meets speed"</h3>
+        <p class="home-reviews-quote-text">Feels like reading a premium gaming magazine, but with the convenience of instant access. Best of both worlds.</p>
+        <div class="home-reviews-attribution">Gaming Journalist</div>
+      </article>
+    </div>
+  </div>
+  
+  <div class="home-reviews-divider-wrapper">
+    <svg data-no-icon-edit="true" aria-hidden="true" viewbox="0 0 1200 100" preserveaspectratio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,100 L0,0 L1200,0 L1200,100 Z" fill="var(--bg-dark)"></path>
+    </svg>
+  </div>
+</section>
+
+<section class="home-cta-section" data-layout-spec="Home-cta">
+  <div class="home-cta-container">
+    <div class="home-cta-content">
+      <h2 class="home-cta-heading">Want your game featured on zappy?</h2>
+      <p class="home-cta-description">We're always looking for exciting titles to showcase. Whether you're a studio, creator, or community manager, share your updates and press kits with us.</p>
+      <a href="/contact" class="home-cta-button btn-primary">Get in Touch</a>
+      <p class="home-cta-meta">Our team typically responds within 24 hours and can help with game listings, reviews, and community features.</p>
+    </div>
+  </div>
+</section>
+  </main>
+  
+  <footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-top">
+      <div class="footer-column footer-brand">
+        <img src="/assets/business-logo.webp" alt="zappy" class="logo">
+        <p class="footer-tagline">Level up your gaming experience</p>
+      </div>
+      
+      <div class="footer-column footer-links">
+        <h3 class="footer-heading">Quick Links</h3>
+        <ul class="footer-menu">
+          <li><a href="/games">Games</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column footer-contact">
+        <h3 class="footer-heading">Contact Us</h3>
+        <ul class="contact-list">
+          <li><i class="fas fa-envelope"></i> <a href="mailto:[business_email]">[business_email]</a></li>
+          <li><i class="fas fa-phone"></i> <a href="tel:[business_phone]">[business_phone]</a></li>
+          <li><a href="/"><i class="fas fa-map-marker-alt"></i> <span>[business_address]</span></a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column footer-social">
+        <h3 class="footer-heading">Follow Us</h3>
+        <div class="social-links">
+          <a href="[facebook_handle]" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="[instagram_handle]" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="[whatsapp_handle]" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <div class="footer-bottom-left">
+        <p class="copyright">© 2026 zappy. All rights reserved.</p>
+      </div>
+      <div class="footer-bottom-right">
+        <ul class="legal-links">
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/terms">Terms &amp; Conditions</a><span class="separator">|</span>
+            <a href="/return-policy" aria-label="Return Policy">
+              Return Policy
+            </a></li>
+          <li><a href="/accessibility">Accessibility</a></li>
+        </ul>
+        <a href="https://zappy5.com" target="_blank" class="zappy-attribution">Generated by Zappy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+  
+  <a href="https://wa.me/[whatsapp_handle]" class="whatsapp-float" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+  
+  <div data-integration="accessibility:toolbar"></div>
+
+    <script src="/script.js"></script>
+
+    <script id="zappy-mobile-submenu-script">
+    (function() {
+      function initMobileSubmenuToggles() {
+        if (window.innerWidth > 768) {
+          document.querySelectorAll('.mobile-submenu-toggle').forEach(function(btn) { btn.remove(); });
+          document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) { menu.classList.remove('mobile-expanded'); });
+          return;
+        }
+        var items = document.querySelectorAll('.nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu)');
+        items.forEach(function(li) {
+          if (li.querySelector('.mobile-submenu-toggle')) return;
+          var submenu = li.querySelector('.sub-menu');
+          var parentLink = li.querySelector(':scope > a');
+          if (!submenu || !parentLink) return;
+          var toggleBtn = document.createElement('button');
+          toggleBtn.className = 'mobile-submenu-toggle';
+          toggleBtn.setAttribute('aria-label', 'Toggle submenu');
+          toggleBtn.setAttribute('type', 'button');
+          parentLink.insertAdjacentElement('afterend', toggleBtn);
+          toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) {
+              if (menu !== submenu) { menu.classList.remove('mobile-expanded'); var t = menu.parentElement.querySelector('.mobile-submenu-toggle'); if(t) t.classList.remove('expanded'); }
+            });
+            submenu.classList.toggle('mobile-expanded');
+            toggleBtn.classList.toggle('expanded');
+          });
+        });
+      }
+      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initMobileSubmenuToggles); }
+      else { initMobileSubmenuToggles(); }
+      var resizeTimer; window.addEventListener('resize', function() { clearTimeout(resizeTimer); resizeTimer = setTimeout(initMobileSubmenuToggles, 250); });
+      // Re-initialize when mobile menu becomes visible (MutationObserver)
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'attributes') {
+            var target = mutation.target;
+            if (target.classList && (target.classList.contains('active') || target.classList.contains('open'))) {
+              setTimeout(initMobileSubmenuToggles, 100);
+            }
+          }
+        });
+      });
+      setTimeout(function() {
+        document.querySelectorAll('.mobile-menu, .nav-menu, #navMenu, nav').forEach(function(menu) {
+          observer.observe(menu, { attributes: true, attributeFilter: ['class', 'style'] });
+        });
+      }, 500);
+    })();
+    </script>
+</body>
+</html>

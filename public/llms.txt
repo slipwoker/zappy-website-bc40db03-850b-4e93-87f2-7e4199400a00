@@ -1,0 +1,59 @@
+# Business — Generative Engine Optimization Map
+
+---
+
+## Pages
+
+### Home
+https://example.com
+Experience the ultimate gaming destination with thousands of free games at your fingertips. Join zappy today and unlock instant access to the best game sites online.
+
+### Games
+https://example.com/games
+Browse our massive collection of free game websites and start playing instantly. From action to puzzles, find your next favorite game on zappy right now.
+
+### About
+https://example.com/about
+Learn how zappy became one of the best game sites trusted by millions of players worldwide. Discover our mission to deliver free, quality gaming experiences.
+
+### Contact
+https://example.com/contact
+Need help or have suggestions? Reach out to the zappy team for quick support on free game sites. We&#39;re here to enhance your gaming experience every day.
+
+### Products
+https://example.com/products
+Our Products - zappy
+
+### Product Detail
+https://example.com/product/:slug
+Product Details - zappy
+
+### Category
+https://example.com/category/:slug
+Products - zappy
+
+## Legal & Policy
+
+### Privacy Policy
+https://example.com/privacy
+Information about how user data is collected, stored, and protected.
+
+### Terms & Conditions
+https://example.com/terms
+Legal terms describing service usage, rights, and policies.
+
+### Accessibility Statement
+https://example.com/accessibility
+Information about WCAG compliance and accessibility features.
+
+---
+
+# Business Context (for LLM understanding)
+
+## About Business
+---
+
+# Additional Resources
+
+- **Sitemap**: https://example.com/sitemap.xml
+- **Robots.txt**: https://example.com/robots.txt
